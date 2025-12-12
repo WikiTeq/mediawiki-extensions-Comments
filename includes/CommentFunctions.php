@@ -109,8 +109,18 @@ class CommentFunctions {
 		}
 
 		// Run text through $wgSpamRegex (and $wgSummarySpamRegex if it has been specified)
-		if ( $wgSpamRegex && preg_match( $wgSpamRegex, $text ) ) {
-			return true;
+		if ( $wgSpamRegex ) {
+			if ( is_array( $wgSpamRegex ) ) {
+				foreach ( $wgSpamRegex as $spamRegex ) {
+					if ( preg_match( $spamRegex, $text ) ) {
+						return true;
+					}
+				}
+			} else {
+				if ( preg_match( $wgSpamRegex, $text ) ) {
+					return true;
+				}
+			}
 		}
 
 		if ( $wgSummarySpamRegex && is_array( $wgSummarySpamRegex ) ) {
