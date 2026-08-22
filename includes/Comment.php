@@ -1023,7 +1023,7 @@ class Comment extends ContextSource {
 		$output .= '</div>' . "\n";
 
 		$output .= '<div class="c-comment-edit-form">';
-		$output .= '<textarea>' . $this->text . '</textarea>';
+		$output .= '<textarea>' . htmlspecialchars( $this->text, ENT_QUOTES ) . '</textarea>';
 		$output .= "<button class=\"c-comment-edit-form-save\" data-comment-id=\"{$this->id}\">" .
 				   wfMessage( 'comments-edit-save' )->plain() . '</button> ';
 		$output .= '<button class="c-comment-edit-form-cancel">' .
