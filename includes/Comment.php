@@ -440,42 +440,41 @@ class Comment extends ContextSource {
 
 		if ( ExtensionRegistry::getInstance()->isLoaded( 'Echo' ) ) {
 			global $wgEchoMentionOnChanges;
-			if ( !$wgEchoMentionOnChanges ) {
-				return;
+			if ( $wgEchoMentionOnChanges ) {
+				// Modified copypasta of EchoDiscussionParser#generateEventsForRevision with less Revision-ism!
+				// (Awful pun is awful, sorry about that.)
+				// EchoDiscussionParser#getChangeInterpretationForRevision is *way*, way too Revision-ist for
+				// our tastes. DO NOT WANT!
+				$title = Title::newFromId( $this->page->id );
+
+				// EchoDiscussionParser#getUserLinks is private, because of course it is.
+				// Here we go once again...
+				$getUserLinks = function ( $content, Title $title ) {
+					$output = self::parseNonEditWikitext( $content, new Article( $title ) );
+					$links = $output->getLinks();
+
+					if ( !isset( $links[NS_USER] ) || !is_array( $links[NS_USER] ) ) {
+						return false;
+					}
+
+					return $links[NS_USER];
+				};
+
+				// stolen from EchoDiscussionParser#generateEventsForRevision
+				$action = [];
+				$action['old_content'] = '';
+				$action['new_content'] = $text;
+				$userLinks = array_diff_key(
+					$getUserLinks( $action['new_content'], $title ) ?: [],
+					$getUserLinks( $action['old_content'], $title ) ?: []
+				);
+				$header = $text;
+
+				self::generateMentionEvents(
+					$header, $userLinks, $action['new_content'], $title, $user,
+					$this, $this->id
+				);
 			}
-			// Modified copypasta of EchoDiscussionParser#generateEventsForRevision with less Revision-ism!
-			// (Awful pun is awful, sorry about that.)
-			// EchoDiscussionParser#getChangeInterpretationForRevision is *way*, way too Revision-ist for
-			// our tastes. DO NOT WANT!
-			$title = Title::newFromId( $this->page->id );
-
-			// EchoDiscussionParser#getUserLinks is private, because of course it is.
-			// Here we go once again...
-			$getUserLinks = function ( $content, Title $title ) {
-				$output = self::parseNonEditWikitext( $content, new Article( $title ) );
-				$links = $output->getLinks();
-
-				if ( !isset( $links[NS_USER] ) || !is_array( $links[NS_USER] ) ) {
-					return false;
-				}
-
-				return $links[NS_USER];
-			};
-
-			// stolen from EchoDiscussionParser#generateEventsForRevision
-			$action = [];
-			$action['old_content'] = '';
-			$action['new_content'] = $text;
-			$userLinks = array_diff_key(
-				$getUserLinks( $action['new_content'], $title ) ?: [],
-				$getUserLinks( $action['old_content'], $title ) ?: []
-			);
-			$header = $text;
-
-			self::generateMentionEvents(
-				$header, $userLinks, $action['new_content'], $title, $user,
-				$this, $this->id
-			);
 		}
 
 		MediaWiki\MediaWikiServices::getInstance()->getHookContainer()->run( 'Comment::edit', [ $this, $this->id, $this->page->id ] );
