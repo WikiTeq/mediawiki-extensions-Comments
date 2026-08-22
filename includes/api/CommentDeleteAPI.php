@@ -19,6 +19,13 @@ class CommentDeleteAPI extends ApiBase {
 			$this->dieBlocked( $user->getGlobalBlock() );
 		}
 
+		if ( !$userCheck ) {
+			$this->dieWithError(
+				$this->msg( 'comments-delete-permissiondenied' ),
+				'comments-delete-permissiondenied'
+			);
+		}
+
 		$comment->delete();
 
 		$result = $this->getResult();
